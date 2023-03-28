@@ -1,0 +1,250 @@
+## themal conductivity with only phonons calculation##------
+#---------------------------------------------------------------------------#
+# loop make all_file
+echo   screen
+print        " ------------------------------------------------"
+print        " -----------------NOW making files---------------"
+print        " ------------------------------------------------"
+label  out_makefile
+    variable     number_out loop 6              
+    variable     file_name_out index  300 500 700 900 1100 1300 
+    shell        mkdir ${file_name_out}  
+    shell        cp in.redao.lmp  ${file_name_out}
+    shell        cp Al-2009.eam.alloy  ${file_name_out}
+    # loop make in_file
+    next         file_name_out
+jump        in.redao.lmp  out_makefile 
+clear
+print        " ------------------------------------------"
+print        " ------------------Finish!-----------------"
+print        " ------------------------------------------"
+# loop make all_file
+#---------------------------------------------------------------------------#
+#---------------------------------------------------------------------------#
+
+label        calculation_in_outfile
+variable     loop_number_out loop 6# related to index 
+# water fraction
+variable     loop_file_out_name index 300 500 700 900 1100 1300  
+shell        cd ${loop_file_out_name}
+log          ${loop_file_out_name}.log
+#---------------------------------------------------------------------------#
+clear
+units             metal
+dimension           3
+boundary          p p p
+atom_style        atomic
+#---------------------------------------------------------------------------#
+variable          TS        equal 0.001                    ### ${TS} timestep
+variable          Tdamp     equal 100*${TS}               ### ${Tdamp} Tdamp
+variable          Pdamp     equal 1000*${TS}              ### ${Tdamp} Tdamp
+### ${T} calculation during the temperature------------------------------------------#
+variable          T         equal 500#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+variable          iniT      equal 300
+### ${T} calculation during the temperature------------------------------------------#
+variable        POWER       equal 10 
+timestep         ${TS}
+#---------------------------------------------------------------------------#
+variable          x_length  equal   100###length of the system  with lattice units 
+
+variable          half_x    equal   ${x_length}*0.5
+
+variable          lattice_unit      equal 4.04
+
+variable          x_reallength    equal ${lattice_unit}*${x_length}
+variable          y_length    equal ${lattice_unit}*10
+variable          z_length    equal ${lattice_unit}*10
+##----------------------------------------------------------------------------Area Value
+variable          Area_face     equal ${y_length}*${z_length}
+
+region            box block 0 ${x_reallength} &
+                            0 ${y_length} &
+                            0 ${z_length} units box 
+create_box        1 box 
+lattice           fcc 4.04
+create_atoms       1 box 
+#----------------------------------------------------------#
+variable chunk1 equal 0.05*${x_length}
+variable chunk2 equal 0.10*${x_length}
+variable chunk3 equal 0.15*${x_length}
+variable chunk4 equal 0.20*${x_length}
+variable chunk5 equal 0.25*${x_length}
+variable chunk6 equal 0.30*${x_length}
+variable chunk7 equal 0.35*${x_length}
+variable chunk8 equal 0.40*${x_length}
+variable chunk9 equal 0.45*${x_length}
+variable chunk10 equal 0.50*${x_length}
+variable chunk11 equal 0.55*${x_length}
+variable chunk12 equal 0.60*${x_length}
+variable chunk13 equal 0.65*${x_length}
+variable chunk14 equal 0.70*${x_length}
+variable chunk15 equal 0.75*${x_length}
+variable chunk16 equal 0.80*${x_length}
+variable chunk17 equal 0.85*${x_length}
+variable chunk18 equal 0.90*${x_length}
+variable chunk19 equal 0.95*${x_length}
+variable chunk20 equal 1*${x_length}
+
+region 1 block INF ${chunk1} INF INF INF INF 
+region 2 block ${chunk1} ${chunk2} INF INF INF INF 
+region 3 block ${chunk2} ${chunk3} INF INF INF INF 
+region 4 block ${chunk3} ${chunk4} INF INF INF INF 
+region 5 block ${chunk4} ${chunk5} INF INF INF INF 
+region 6 block ${chunk5} ${chunk6} INF INF INF INF 
+region 7 block ${chunk6} ${chunk7} INF INF INF INF 
+region 8 block ${chunk7} ${chunk8} INF INF INF INF 
+region 9 block ${chunk8} ${chunk9} INF INF INF INF 
+region 10 block ${chunk9} ${chunk10} INF INF INF INF 
+region 11 block ${chunk10} ${chunk11} INF INF INF INF 
+region 12 block ${chunk11} ${chunk12} INF INF INF INF 
+region 13 block ${chunk12} ${chunk13} INF INF INF INF 
+region 14 block ${chunk13} ${chunk14} INF INF INF INF 
+region 15 block ${chunk14} ${chunk15} INF INF INF INF 
+region 16 block ${chunk15} ${chunk16} INF INF INF INF 
+region 17 block ${chunk16} ${chunk17} INF INF INF INF 
+region 18 block ${chunk17} ${chunk18} INF INF INF INF 
+region 19 block ${chunk18} ${chunk19} INF INF INF INF 
+region 20 block ${chunk19} ${chunk20} INF INF INF INF 
+group 1 region 1
+group 2 region 2
+group 3 region 3
+group 4 region 4
+group 5 region 5
+group 6 region 6
+group 7 region 7
+group 8 region 8
+group 9 region 9
+group 10 region 10
+group 11 region 11
+group 12 region 12
+group 13 region 13
+group 14 region 14
+group 15 region 15
+group 16 region 16
+group 17 region 17
+group 18 region 18
+group 19 region 19
+group 20 region 20
+#----------------------------------------------------------#
+#----------------------------------------------------------#
+# setting mass
+mass              * 26.982  # mass for Al
+velocity          all create 300 818172 dist gaussian      #
+#----------------------------------------------------------#
+minimize          1.0e-5 1.0e-7 1000 10000
+write_data        initiate-state.data
+#----------------------------------------------------------#
+#                     pair interaction                     #
+#----------------------------------------------------------#
+pair_style        eam/alloy  # Al-2009.eam.alloy
+pair_coeff        * * Al-2009.eam.alloy Al
+
+neighbor          2.0 bin
+neigh_modify      every 5 delay 0 check no
+#----------------------------------------------------------#
+#                   COMPUTE SETTINGS
+#----------------------------------------------------------#
+compute 1 1 temp
+compute 2 2 temp
+compute 3 3 temp
+compute 4 4 temp
+compute 5 5 temp
+compute 6 6 temp
+compute 7 7 temp
+compute 8 8 temp
+compute 9 9 temp
+compute 10 10 temp
+compute 11 11 temp
+compute 12 12 temp
+compute 13 13 temp
+compute 14 14 temp
+compute 15 15 temp
+compute 16 16 temp
+compute 17 17 temp
+compute 18 18 temp
+compute 19 19 temp
+compute 20 20 temp
+variable c1 equal c_1
+variable c2 equal c_2
+variable c3 equal c_3
+variable c4 equal c_4
+variable c5 equal c_5
+variable c6 equal c_6
+variable c7 equal c_7
+variable c8 equal c_8
+variable c9 equal c_9
+variable c10 equal c_10
+variable c11 equal c_11
+variable c12 equal c_12
+variable c13 equal c_13
+variable c14 equal c_14
+variable c15 equal c_15
+variable c16 equal c_16
+variable c17 equal c_17
+variable c18 equal c_18
+variable c19 equal c_19
+variable c20 equal c_20
+
+fix p all print 100 &
+        "${c1},${c2},${c3},${c4},${c5},${c6},${c7},${c8},${c9},${c10},${c11},${c12},${c13},${c14},${c15},${c16},${c17},${c18},${c19},${c20}" file chiyu_temp.txt screen no
+#----------------------------------------------------------#
+thermo            10
+thermo_style custom step c_1 c_5 c_10 c_15 c_20
+#----------------------------------------------------------#
+#----------------------------------------------------------------------#
+variable         chiyu equal 100/${TS}
+fix              NPT   all  npt temp ${iniT} ${iniT} ${Tdamp} iso 1 1 ${Pdamp}
+run                ${chiyu}
+unfix NPT
+#----------------------------------------------------------#
+variable         shengwen equal ${T}-${iniT}
+variable         shengstep equal ${shengwen}/${TS}
+fix              NPT   all  npt temp ${iniT} ${T} ${Tdamp} iso 1 1 ${Pdamp}
+run                ${shengstep}
+unfix NPT
+#----------------------------------------------------------#
+variable         pingheng equal 100/${TS}
+fix              NPT   all  npt temp ${T} ${T} ${Tdamp} iso 1 1 ${Pdamp}
+run                ${pingheng}
+unfix NPT
+unfix p
+#----------------------------------------------------------#
+reset_timestep 0
+#----------------------------------------------------------#
+# 1 is heat
+# 11 is cool
+variable          heat_flux_length     equal bound(20,xmax)-bound(11,xmin)
+#----------------------------------------------------------#
+#group             1 dynamic all region 1 every 1
+#group             11 dynamic all region 11 every 1
+variable          HOT_temp   equal ${T}+20
+variable          COLD_temp  equal ${T}-20
+compute          heat 1 temp/region 1
+compute          cold 11 temp/region 11
+#----------------------------------------------------------#
+#                     heat process_1
+#----------------------------------------------------------#
+fix               NVE   all nve
+fix               HEAT  all ehex 1  ${POWER} region 1
+fix               COLD  all ehex 1 -${POWER} region 11
+#----------------------------------------------------------#
+###################
+#    run 2        #
+###################
+variable          100_ps equal  100/${TS}
+variable          50_ps equal  50/${TS}
+fix p all print 100 &
+        "${c1},${c2},${c3},${c4},${c5},${c6},${c7},${c8},${c9},${c10},${c11},${c12},${c13},${c14},${c15},${c16},${c17},${c18},${c19},${c20}" file dynamic_temp.txt screen no
+run               ${100_ps}
+unfix p
+fix p all print 100 &
+        "${c1},${c2},${c3},${c4},${c5},${c6},${c7},${c8},${c9},${c10},${c11},${c12},${c13},${c14},${c15},${c16},${c17},${c18},${c19},${c20}" file caiyang_temp.txt screen no
+fix              ave all ave/time 100 1 100 c_1 c_11 file temp_heat_cold.txt        
+run               ${50_ps}
+#----------------------------------------------------------#
+shell        cd ..
+clear
+
+next         loop_file_out_name
+jump         in.redao.lmp calculation_in_outfile
+#---------------------------------------------------------------------------#
